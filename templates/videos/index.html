@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Streaming Demo</title>
+    
+    <!-- Video.js CSS -->
+    <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--card-background);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background-color: var(--background-color);
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .video-card {
+            background: var(--card-background);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: var(--secondary-color);
+        }
+        
+        .video-info {
+            padding: 1.5rem;
+        }
+        
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .video-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .video-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .video-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-processing {
+            background-color: #fed7aa;
+            color: #92400e;
+        }
+        
+        .status-pending {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-failed {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .video-player-container {
+            margin-top: 1rem;
+        }
+        
+        .video-js {
+            width: 100%;
+            height: 200px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+        
+        .no-videos {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .refresh-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            transition: background-color 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #1d4ed8;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Video Streaming Demo</h1>
+            <p>Upload and stream videos with HLS technology</p>
+        </header>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-videos">-</div>
+                <div class="stat-label">Total Videos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completed-videos">-</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="processing-videos">-</div>
+                <div class="stat-label">Processing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="failed-videos">-</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadVideos()">Refresh Videos</button>
+
+        <div class="filters">
+            <button class="filter-btn active" data-status="completed">Completed</button>
+            <button class="filter-btn" data-status="processing">Processing</button>
+            <button class="filter-btn" data-status="pending">Pending</button>
+            <button class="filter-btn" data-status="failed">Failed</button>
+            <button class="filter-btn" data-status="all">All</button>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+        
+        <div id="loading" class="loading">
+            Loading videos...
+        </div>
+
+        <div id="video-grid" class="video-grid" style="display: none;">
+            <!-- Videos will be loaded here -->
+        </div>
+
+        <div id="no-videos" class="no-videos" style="display: none;">
+            <h3>No videos found</h3>
+            <p>Upload videos through the Django admin panel to get started.</p>
+        </div>
+    </div>
+
+    <!-- Video.js JavaScript -->
+    <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+    
+    <script>
+        let currentFilter = 'completed';
+        let players = {};
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadVideos();
+            setupFilters();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadStats();
+                if (currentFilter === 'processing' || currentFilter === 'pending') {
+                    loadVideos();
+                }
+            }, 30000);
+        });
+
+        function setupFilters() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.status;
+                    loadVideos();
+                });
+            });
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/videos/stats/');
+                const stats = await response.json();
+                
+                document.getElementById('total-videos').textContent = stats.total_videos;
+                document.getElementById('completed-videos').textContent = stats.completed_videos;
+                document.getElementById('processing-videos').textContent = stats.processing_videos;
+                document.getElementById('failed-videos').textContent = stats.failed_videos;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadVideos() {
+            const loading = document.getElementById('loading');
+            const videoGrid = document.getElementById('video-grid');
+            const noVideos = document.getElementById('no-videos');
+            const errorMessage = document.getElementById('error-message');
+            
+            loading.style.display = 'block';
+            videoGrid.style.display = 'none';
+            noVideos.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            // Dispose existing players
+            Object.values(players).forEach(player => {
+                if (player && typeof player.dispose === 'function') {
+                    player.dispose();
+                }
+            });
+            players = {};
+
+            try {
+                const url = currentFilter === 'all' ? '/api/videos/' : `/api/videos/?status=${currentFilter}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load videos');
+                }
+                
+                const data = await response.json();
+                const videos = data.results || data;
+                
+                loading.style.display = 'none';
+                
+                if (videos.length === 0) {
+                    noVideos.style.display = 'block';
+                } else {
+                    renderVideos(videos);
+                    videoGrid.style.display = 'grid';
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                errorMessage.textContent = 'Error loading videos: ' + error.message;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        function renderVideos(videos) {
+            const videoGrid = document.getElementById('video-grid');
+            videoGrid.innerHTML = '';
+            
+            videos.forEach(video => {
+                const videoCard = createVideoCard(video);
+                videoGrid.appendChild(videoCard);
+            });
+        }
+
+        function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            const thumbnailUrl = video.thumbnail_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="200"%3E%3Crect fill="%23ddd" width="400" height="200"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Thumbnail%3C/text%3E%3C/svg%3E';
+            
+            card.innerHTML = `
+                <img src="${thumbnailUrl}" alt="${video.title}" class="video-thumbnail">
+                <div class="video-info">
+                    <h3 class="video-title">${video.title}</h3>
+                    <p class="video-description">${video.description || 'No description available'}</p>
+                    <div class="video-meta">
+                        <span>${video.duration_display || 'Unknown duration'}</span>
+                        <span class="video-status status-${video.status}">${video.status}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Add video player if completed
+            if (video.status === 'completed' && video.hls_url) {
+                const playerContainer = document.createElement('div');
+                playerContainer.className = 'video-player-container';
+                playerContainer.innerHTML = `
+                    <video-js 
+                        id="player-${video.id}" 
+                        class="video-js" 
+                        controls 
+                        preload="none" 
+                        poster="${thumbnailUrl}"
+                        data-setup='{"fluid": true}'>
+                        <source src="${video.hls_url}" type="application/x-mpegURL">
+                        <p class="vjs-no-js">
+                            To view this video please enable JavaScript, and consider upgrading to a web browser that
+                            <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.
+                        </p>
+                    </video-js>
+                `;
+                card.appendChild(playerContainer);
+                
+                // Initialize Video.js player
+                setTimeout(() => {
+                    const player = videojs(`player-${video.id}`, {
+                        controls: true,
+                        fluid: true,
+                        responsive: true,
+                        html5: {
+                            hlsjsConfig: {
+                                enableWorker: false,
+                                lowLatencyMode: true,
+                            }
+                        }
+                    });
+                    players[video.id] = player;
+                }, 100);
+            }
+            
+            return card;
+        }
+    </script>
+</body>
+</html>
