@@ -21,6 +21,7 @@ django-filter = "^23.3"
 black = "^23.11.0"
 flake8 = "^6.1.0"
 isort = "^5.12.0"
+autoflake = "^2.3.3"
 
 [build-system]
 requires = ["poetry-core"]

@@ -2,12 +2,12 @@ from django.apps import AppConfig
 
 
 class VideosConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'videos'
-    
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "videos"
+
     def ready(self):
         """Import signals when app is ready"""
         try:
-            import videos.signals
+            pass
         except ImportError:
             pass
